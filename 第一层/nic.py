@@ -148,12 +148,12 @@ class Run:
                     self.result3.append((hostname,ip,brand,"登录不上",self.time))
                 logging_nic.error(f"{hostname},{ip},{brand}。登录不上。")
                 return
-            stdin,stdout,stderr=client.exec_command("esxcfg-vmknic -l | grep IPv4",timeout=5)
+            stdin,stdout,stderr=client.exec_command("esxcfg-vmknic -l | grep IPv4",timeout=60)
             output=stdout.read().decode('utf-8').strip()
             for line in output.split("\n"):
                 line=line.split()
                 self.result1.append((hostname,ip,brand,line[0],line[6],"虚拟",line[1]))
-            stdin,stdout,stderr=client.exec_command("esxcli network nic list",timeout=5)
+            stdin,stdout,stderr=client.exec_command("esxcli network nic list",timeout=60)
             output=stdout.read().decode('utf-8').strip()
             for line in output.split("\n"):
                 if "nic" not in line:
