@@ -20,10 +20,10 @@ def get_rotating_handler(filename,max_bytes=1024*1024*1024,backup_count=5):
     handler.setFormatter(formatter)
     return handler
 
-handler=get_rotating_handler("nic.log")
-logging_nic=logging.getLogger("nic")
-logging_nic.setLevel(logging.INFO)
-logging_nic.addHandler(handler)
+handler=get_rotating_handler("nic2.log")
+logging_nic2=logging.getLogger("nic2")
+logging_nic2.setLevel(logging.INFO)
+logging_nic2.addHandler(handler)
 
 from connect import Connect_Mysql,Connect_Mongodb
 from bson import ObjectId
@@ -52,7 +52,7 @@ class Run:
                             ObjectId("5fcef6de94103c791bc2a471")
                         ]
                     },
-                    "device_server_group":ObjectId("5ec8c70a94285cfd9cacee91")
+                    "device_server_group":{"$in":[ObjectId("5ec8c70a94285cfd9cacee92"),ObjectId("5ec8c70a94285cfd9cacee95")]}
                 }
             },
             {
@@ -80,91 +80,37 @@ class Run:
         self.result2=[];self.lock2=threading.Lock()
         self.result3=[];self.lock3=threading.Lock()
         self.time=datetime.now()
-        
-
-    def create_table(self):
-        sql='''
-        create table if not exists topu.nic (
-            hostname VARCHAR(100),
-            ip VARCHAR(100),
-            brand VARCHAR(100),
-            name VARCHAR(25),
-            mac_address VARCHAR(50),
-            type VARCHAR(25),
-            description TEXT,
-            primary key (hostname,name)
-        );
-        '''
-        self.db_mysql_client.execute(sql)
-        self.db_mysql.client.commit()
-        sql='''
-        create table if not exists topu.between_server_and_nic (
-            hostname VARCHAR(100),
-            name VARCHAR(25),
-            primary key (hostname,name)
-        );
-        '''
-        self.db_mysql_client.execute(sql)
-        self.db_mysql.client.commit()
-        sql='''
-        create table if not exists cds_report.collect_lldp_from_server (
-            hostname VARCHAR(100),
-            ip VARCHAR(100),
-            brand VARCHAR(100),
-            info TEXT,
-            time DATE
-        );
-        '''
-        self.db_mysql_client.execute(sql)
-        self.db_mysql.client.commit()
-
-    def truncate_table(self):
-        sql='''
-        truncate table topu.nic;
-        '''
-        self.db_mysql_client.execute(sql)
-        self.db_mysql.client.commit()
-        sql='''
-        truncate table topu.between_server_and_nic;
-        '''
-        self.db_mysql_client.execute(sql)
-        self.db_mysql.client.commit()
-        sql='''
-        truncate table cds_report.collect_lldp_from_server;
-        '''
-        self.db_mysql_client.execute(sql)
-        self.db_mysql.client.commit()
 
     def fc(self,hostname,ip,brand):
-        try:
-            if "." not in ip:
-                with self.lock3:
-                    self.result3.append((hostname,ip,brand,"ip有错误",self.time))
-                logging_nic.error(f"{hostname},{ip},{brand}。ip有错误。")
-                return
-            client=SSH_Server(hostname,ip,brand).client
-            if client==None:
-                with self.lock3:
-                    self.result3.append((hostname,ip,brand,"登录不上",self.time))
-                logging_nic.error(f"{hostname},{ip},{brand}。登录不上。")
-                return
-            stdin,stdout,stderr=client.exec_command("esxcfg-vmknic -l | grep IPv4",timeout=60)
-            output=stdout.read().decode('utf-8').strip()
-            for line in output.split("\n"):
-                line=line.split()
-                self.result1.append((hostname,ip,brand,line[0],line[6],"虚拟",line[1]))
-            stdin,stdout,stderr=client.exec_command("esxcli network nic list",timeout=60)
-            output=stdout.read().decode('utf-8').strip()
-            for line in output.split("\n"):
-                if "nic" not in line:
-                    continue
-                line=line.split()
-                self.result1.append((hostname,ip,brand,line[0],line[7],"物理",line[1]+"|"+line[2]+"|"+line[-1]))
-            client.close()
-        except Exception as e:
+        if "." not in ip:
             with self.lock3:
-                self.result3.append((hostname,ip,brand,str(e),self.time))
-            logging_nic.error(f"{hostname},{ip},{brand}。{str(e)}。")
+                self.result3.append((hostname,ip,brand,"ip有错误",self.time,"nic2.py"))
+            logging_nic2.error(f"{hostname},{ip},{brand}。ip有错误。")
+            return
+        for i in ["SDS","MDM","EBS"]:
+            if i in hostname:
+                break
+        else:
+            with self.lock3:
+                self.result3.append((hostname,ip,brand,"放弃处理",self.time,"nic2.py"))
+            logging_nic2.error(f"{hostname},{ip},{brand}。放弃处理。")
+            return
+        client=SSH_Server(hostname,ip,brand).client
+        if client==None:
+            with self.lock3:
+                self.result3.append((hostname,ip,brand,"登录不上",self.time,"nic2.py"))
+            logging_nic2.error(f"{hostname},{ip},{brand}。登录不上。")
+            return
+        stdin,stdout,stderr=client.exec_command("ip addr show",timeout=60)
+        output=stdout.read().decode('utf-8').strip()
+        for line in output.split("\n"):
+            if not line:
+                continue
+            if line[0]==" ":
+                continue
+            line=line[line.index(":")+1:]
+            line=line[:line.index(":")].strip()
+            self.result1.append((hostname,ip,brand,line,"","存储",""))
 
     def collect(self):
         data=pd.DataFrame(list(self.db_mongo.db.cds_ci_att_value_server.aggregate(self.pipeline))).astype(str)[["hostname","device_ip","brand"]].values.tolist()
@@ -187,14 +133,12 @@ class Run:
         self.db_mysql_client.executemany(sql,[(i[0],i[3]) for i in self.result1])
         self.db_mysql.client.commit()
         sql='''
-        insert into cds_report.collect_lldp_from_server (hostname,ip,brand,info,time) values (%s,%s,%s,%s,%s)
+        insert into cds_report.collect_lldp_from_server (hostname,ip,brand,info,time,file) values (%s,%s,%s,%s,%s,%s)
         '''
         self.db_mysql_client.executemany(sql,self.result3)
         self.db_mysql.client.commit()
 
     def run(self):
-        self.create_table()
-        self.truncate_table()
         self.collect()
         self.insert_data()
 
