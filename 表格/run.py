@@ -40,6 +40,11 @@ class Run:
             if self.result[i][0] in jh1:
                 self.result[i][3]=1
                 self.result[i][-2]+="但是可以采集得到。"
+                continue
+            if "-N01" in self.result[i][0] or "-N02" in self.result[i][0]:
+                self.result[i][3]=1
+                self.result[i][-2]+="人为过滤"
+                continue
             for j in jh2:
                 if j in self.result[i][0]:
                     self.result[i][3]=1
