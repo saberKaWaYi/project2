@@ -25,62 +25,22 @@ logging_nic1=logging.getLogger("nic1")
 logging_nic1.setLevel(logging.INFO)
 logging_nic1.addHandler(handler)
 
-from connect import Connect_Mysql,Connect_Mongodb
-from bson import ObjectId
+from connect import Connect_Mysql
 import threading
 from datetime import datetime
-from ssh import SSH_Server
-import pandas as pd
 from concurrent.futures import ThreadPoolExecutor,as_completed
+from ssh import SSH_Server
 
 class Run:
 
-    def __init__(self,config1,config2):
-        self.config1=config1
-        self.config2=config2
-        self.db_mysql=Connect_Mysql(config1)
+    def __init__(self,config):
+        self.config1=config
+        self.db_mysql=Connect_Mysql(config)
         self.db_mysql_client=self.db_mysql.client.cursor()
-        self.db_mongo=Connect_Mongodb(config2)
-        self.db_mongo_client=self.db_mongo.client
-        self.pipeline=[
-            {
-                '$match':{
-                    'status':1,
-                    'asset_status':{
-                        '$in':[
-                            ObjectId("5f964e31df0dfd65aaa716ec"),
-                            ObjectId("5fcef6de94103c791bc2a471")
-                        ]
-                    },
-                    "device_server_group":ObjectId("5ec8c70a94285cfd9cacee91")
-                }
-            },
-            {
-                '$lookup':{
-                    'from':'cds_ci_location_detail',
-                    'localField':'_id',
-                    'foreignField':'device_id',
-                    'as':'location'
-                }
-            },
-            {
-                '$match':{
-                    'location.status':1
-                }
-            },
-            {
-                '$project':{
-                    "device_ip":1,
-                    "brand":1,
-                    "hostname":1
-                }
-            }
-        ]
         self.result1=[];self.lock1=threading.Lock()
         self.result2=[];self.lock2=threading.Lock()
         self.result3=[];self.lock3=threading.Lock()
         self.time=datetime.now()
-        
 
     def create_table(self):
         sql='''
@@ -113,7 +73,7 @@ class Run:
             brand VARCHAR(100),
             info TEXT,
             time DATE,
-            file VARCHAR(100)
+            file VARCHAR(50)
         );
         '''
         self.db_mysql_client.execute(sql)
@@ -153,7 +113,7 @@ class Run:
             output=stdout.read().decode('utf-8').strip()
             for line in output.split("\n"):
                 line=line.split()
-                self.result1.append((hostname,ip,brand,line[0],line[6],"虚拟",line[1]))
+                self.result1.append((hostname,ip,brand,line[0],line[6],"虚拟",f"{line[1]}|{line[3]}"))
             stdin,stdout,stderr=client.exec_command("esxcli network nic list",timeout=60)
             output=stdout.read().decode('utf-8').strip()
             for line in output.split("\n"):
@@ -168,7 +128,7 @@ class Run:
             logging_nic1.error(f"{hostname},{ip},{brand}。{str(e)}。")
 
     def collect(self):
-        data=pd.DataFrame(list(self.db_mongo.db.cds_ci_att_value_server.aggregate(self.pipeline))).astype(str)[["hostname","device_ip","brand"]].values.tolist()
+        data=self.db_mysql.get_table_data("","select hostname,in_band_ip,brand2 from topu.server where server_group='云平台计算'")[["hostname","in_band_ip","brand2"]].values.tolist()
         with ThreadPoolExecutor(max_workers=50) as executor:
             pool=[]
             for i in data:
@@ -200,7 +160,7 @@ class Run:
         self.insert_data()
 
 if __name__=="__main__":
-    config1={
+    config={
         "connection":{
             "TIMES":3,
             "TIME":1
@@ -212,17 +172,5 @@ if __name__=="__main__":
             "PASSWORD":"cds-cloud@2017"
         }
     }
-    config2={
-        "connection":{
-            "TIMES":3,
-            "TIME":1
-        },
-        "mongodb":{
-            "HOST":"10.216.141.46",
-            "PORT":27017,
-            "USERNAME":"manager",
-            "PASSWORD":"cds-cloud@2017"
-        }
-    }
-    m=Run(config1,config2)
+    m=Run(config)
     m.run()
