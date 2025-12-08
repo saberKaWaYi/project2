@@ -242,6 +242,10 @@ class Run:
             self.fc(hostname,ip,brand,"show ethernet-switching table")
         elif brand=="h3c":
             self.fc(hostname,ip,brand,"dis mac-address mac-move")
+        elif brand=="fenghuo":
+            pass
+        elif brand=="nokia":
+            pass
 
     def run1_0(self,key):
         with ThreadPoolExecutor(max_workers=25) as executor:
