@@ -119,6 +119,13 @@ class Run:
         elif brand=="cisco":
             if "Eth" in s:
                 s=s.replace("Eth","Ethernet")
+        elif brand=="h3c":
+            if "GE" in s and s.index("GE")==0:
+                s=s.replace("GE","GigabitEthernet")
+            if "XGE" in s and s.index("XGE")==0:
+                s=s.replace("XGE","XGigabitEthernet")
+            if "BAGG" in s and s.index("BAGG")==0:
+                s=s.replace("BAGG","Bridge-Aggregation")
         return s
 
     def fc(self,hostname,ip,brand,command):
@@ -200,6 +207,16 @@ class Run:
                     if (hostname,line[3]) not in self.result:
                         self.result[(hostname,line[3])]=[]
                     self.result[(hostname,line[3])].append(line[1])
+        elif brand=="h3c":
+            info=response_url_post.split("\n")
+            for line in info:
+                line=line.split()
+                if not line or line[0].count("-")!=2:
+                    continue
+                with self.lock4:
+                    if (hostname,self.tool2(line[2],brand)) not in self.result:
+                        self.result[(hostname,self.tool2(line[2],brand))]=[]
+                    self.result[(hostname,self.tool2(line[2],brand))].append(self.tool1(line[0],"-"))
 
     def main1(self,hostname,ip,brand):
         if "." not in ip:
