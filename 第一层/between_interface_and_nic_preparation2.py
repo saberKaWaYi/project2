@@ -190,6 +190,17 @@ class Run:
                     if (hostname,self.tool2(line[-1],brand)) not in self.result:
                         self.result[(hostname,self.tool2(line[-1],brand))]=[]
                     self.result[(hostname,self.tool2(line[-1],brand))].append(self.tool1(line[2],"."))
+        elif brand=="junos":
+            info=response_url_post.split("\n")
+            for line in info:
+                line=line.split()
+                if not line or line[1].count(":")!=5:
+                    continue
+                with self.lock4:
+                    if (hostname,line[3]) not in self.result:
+                        self.result[(hostname,line[3])]=[]
+                    self.result[(hostname,line[3])].append(line[1])
+                    
 
     def main1(self,hostname,ip,brand):
         if "." not in ip:
@@ -211,6 +222,8 @@ class Run:
             self.fc(hostname,ip,brand,"display mac-address")
         elif brand=="cisco":
             self.fc(hostname,ip,brand,"show mac address-table | in Eth")
+        elif brand=="junos":
+            self.fc(hostname,ip,brand,"show ethernet-switching table")
 
     def run1_0(self,key):
         with ThreadPoolExecutor(max_workers=25) as executor:
