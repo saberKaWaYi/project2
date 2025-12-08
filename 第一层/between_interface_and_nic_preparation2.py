@@ -243,9 +243,9 @@ class Run:
         elif brand=="h3c":
             self.fc(hostname,ip,brand,"dis mac-address mac-move")
         elif brand=="fenghuo":
-            pass
+            pass#有待改进
         elif brand=="nokia":
-            pass
+            pass#有待改进
 
     def run1_0(self,key):
         with ThreadPoolExecutor(max_workers=25) as executor:
