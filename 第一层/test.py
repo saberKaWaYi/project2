@@ -17,9 +17,9 @@ class Run:
             return
         if brand not in ["huawei","huarong","cisco","junos","fenghuo","nokia","h3c"]:
             return
-        if brand not in ["junos"]:
+        if brand not in ["h3c"]:
             return
-        cmd="show ethernet-switching table"
+        cmd="dis mac-address mac-move"
         url_post='http://10.213.136.111:40061/network_app/distribute_config/exec_cmd/'
         config={
             "device_hostname":hostname,
