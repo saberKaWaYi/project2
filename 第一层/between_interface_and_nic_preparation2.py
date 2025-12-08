@@ -343,7 +343,7 @@ class Run:
                 t1.join()
                 t2.join()
             else:
-                self.run1("else")
+                self.run1_0("else")
 
     def run(self):
         self.alter()
