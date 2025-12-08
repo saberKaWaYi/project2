@@ -194,13 +194,12 @@ class Run:
             info=response_url_post.split("\n")
             for line in info:
                 line=line.split()
-                if not line or line[1].count(":")!=5:
+                if len(line)<2 or line[1].count(":")!=5:
                     continue
                 with self.lock4:
                     if (hostname,line[3]) not in self.result:
                         self.result[(hostname,line[3])]=[]
                     self.result[(hostname,line[3])].append(line[1])
-                    
 
     def main1(self,hostname,ip,brand):
         if "." not in ip:
@@ -224,6 +223,8 @@ class Run:
             self.fc(hostname,ip,brand,"show mac address-table | in Eth")
         elif brand=="junos":
             self.fc(hostname,ip,brand,"show ethernet-switching table")
+        elif brand=="h3c":
+            self.fc(hostname,ip,brand,"dis mac-address mac-move")
 
     def run1_0(self,key):
         with ThreadPoolExecutor(max_workers=25) as executor:
