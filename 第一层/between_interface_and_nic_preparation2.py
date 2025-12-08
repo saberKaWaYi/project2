@@ -177,46 +177,52 @@ class Run:
                     self.errors.append((hostname,ip,brand,f"{url_post}没数据。",self.time,"between_interface_and_nic_preparation2.py"))
                 logging_between_interface_and_nic_preparation2.error(f"{hostname:<50s}{ip:<25s}{brand:<25s}{url_post}没数据。")
                 return
-        if brand=="huawei" or brand=="huarong":
-            info=response_url_post.split("\n")
-            for line in info:
-                line=line.split()
-                if not line or line[0].count("-")!=2 or line[3]!="dynamic":
-                    continue
-                with self.lock4:
-                    if (hostname,self.tool2(line[2],brand)) not in self.result:
-                        self.result[(hostname,self.tool2(line[2],brand))]=[]
-                    self.result[(hostname,self.tool2(line[2],brand))].append(self.tool1(line[0],"-"))
-        elif brand=="cisco":
-            info=response_url_post.split("\n")
-            for line in info:
-                line=line.split()
-                if not line or line[0]!="*":
-                    continue
-                with self.lock4:
-                    if (hostname,self.tool2(line[-1],brand)) not in self.result:
-                        self.result[(hostname,self.tool2(line[-1],brand))]=[]
-                    self.result[(hostname,self.tool2(line[-1],brand))].append(self.tool1(line[2],"."))
-        elif brand=="junos":
-            info=response_url_post.split("\n")
-            for line in info:
-                line=line.split()
-                if len(line)<2 or line[1].count(":")!=5:
-                    continue
-                with self.lock4:
-                    if (hostname,line[3]) not in self.result:
-                        self.result[(hostname,line[3])]=[]
-                    self.result[(hostname,line[3])].append(line[1])
-        elif brand=="h3c":
-            info=response_url_post.split("\n")
-            for line in info:
-                line=line.split()
-                if not line or line[0].count("-")!=2:
-                    continue
-                with self.lock4:
-                    if (hostname,self.tool2(line[2],brand)) not in self.result:
-                        self.result[(hostname,self.tool2(line[2],brand))]=[]
-                    self.result[(hostname,self.tool2(line[2],brand))].append(self.tool1(line[0],"-"))
+        try:
+            if brand=="huawei" or brand=="huarong":
+                info=response_url_post.split("\n")
+                for line in info:
+                    line=line.split()
+                    if not line or line[0].count("-")!=2 or line[3]!="dynamic":
+                        continue
+                    with self.lock4:
+                        if (hostname,self.tool2(line[2],brand)) not in self.result:
+                            self.result[(hostname,self.tool2(line[2],brand))]=[]
+                        self.result[(hostname,self.tool2(line[2],brand))].append(self.tool1(line[0],"-"))
+            elif brand=="cisco":
+                info=response_url_post.split("\n")
+                for line in info:
+                    line=line.split()
+                    if not line or line[0]!="*":
+                        continue
+                    with self.lock4:
+                        if (hostname,self.tool2(line[-1],brand)) not in self.result:
+                            self.result[(hostname,self.tool2(line[-1],brand))]=[]
+                        self.result[(hostname,self.tool2(line[-1],brand))].append(self.tool1(line[2],"."))
+            elif brand=="junos":
+                info=response_url_post.split("\n")
+                for line in info:
+                    line=line.split()
+                    if len(line)<2 or line[1].count(":")!=5:
+                        continue
+                    with self.lock4:
+                        if (hostname,line[3]) not in self.result:
+                            self.result[(hostname,line[3])]=[]
+                        self.result[(hostname,line[3])].append(line[1])
+            elif brand=="h3c":
+                info=response_url_post.split("\n")
+                for line in info:
+                    line=line.split()
+                    if not line or line[0].count("-")!=2:
+                        continue
+                    with self.lock4:
+                        if (hostname,self.tool2(line[2],brand)) not in self.result:
+                            self.result[(hostname,self.tool2(line[2],brand))]=[]
+                        self.result[(hostname,self.tool2(line[2],brand))].append(self.tool1(line[0],"-"))
+        except Exception as e:
+            with self.lock1:
+                self.errors.append((hostname,ip,brand,str(e),self.time,"between_interface_and_nic_preparation2.py"))
+            logging_between_interface_and_nic_preparation2.error(f"{hostname:<50s}{ip:<25s}{brand:<25s}{str(e)}。")
+            return
 
     def main1(self,hostname,ip,brand):
         if "." not in ip:
