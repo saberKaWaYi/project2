@@ -444,7 +444,7 @@ class Run:
             hostname=network[i][0]
             hostname="-".join([i.strip() for i in hostname.split("-")])
             network[i][0]=hostname
-            if "." not in network[i][1]:
+            if "." not in network[i][1] or "-" in network[i][1] or network[i][1].count(".")>=4:
                 network[i][1]=""
             else:
                 ip=network[i][1]
