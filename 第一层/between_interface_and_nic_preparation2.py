@@ -342,6 +342,8 @@ class Run:
                 t2.start()
                 t1.join()
                 t2.join()
+            else:
+                self.run1("else")
 
     def run(self):
         self.alter()
