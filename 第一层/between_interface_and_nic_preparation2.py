@@ -332,8 +332,6 @@ class Run:
         for i in self.zd1:
             if i not in self.zd4 and i!="else":
                 continue
-            if i!="POD08":
-                continue
             if i!="else":
                 self.signal1=time.time()
                 self.signal2=[]
