@@ -167,7 +167,7 @@ class Run:
             info=response_url_post.split("\n")
             for line in info:
                 line=line.split()
-                if not line or len(line)!=5 or line[0].count("-")!=2:
+                if not line or line[0].count("-")!=2 or line[3]!="dynamic":
                     continue
                 with self.lock4:
                     if line[2] not in self.result:
