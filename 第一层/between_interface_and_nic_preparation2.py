@@ -315,7 +315,7 @@ class Run:
                 try:
                     client.exec_command(command)
                 except Exception as e:
-                    logging_between_interface_and_nic_preparation2.error(e)
+                    logging_between_interface_and_nic_preparation2.error(str(e))
             time.sleep(1)
             if flag:
                 continue
