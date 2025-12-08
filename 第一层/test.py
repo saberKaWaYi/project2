@@ -11,6 +11,15 @@ class Run:
         self.data=self.db_mysql.get_table_data("","select hostname,ip,brand from topu.network")[["hostname","ip","brand"]].values.tolist()
 
     def fc(self,hostname,ip,brand):
+        if "." not in ip:
+            return
+        if hostname.lower() in ["none","null","nan","","-","--","---"]:
+            return
+        if brand not in ["huawei","huarong","cisco","junos","fenghuo","nokia","h3c"]:
+            return
+        if brand not in ["huawei","huarong"]:
+            return
+        cmd="display mac-address"
         url_post='http://10.213.136.111:40061/network_app/distribute_config/exec_cmd/'
         config={
             "device_hostname":hostname,
@@ -18,7 +27,7 @@ class Run:
             "is_edit":False,
             "cmd":""
         }
-        config["cmd"]="display mac-address"
+        config["cmd"]=cmd
         url_get=f"http://10.216.142.10:40061/network_app/conf/device/data_list/?device_hostname={hostname}"
         response_url_get=requests.get(url_get).json()
         try:
