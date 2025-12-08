@@ -17,9 +17,9 @@ class Run:
             return
         if brand not in ["huawei","huarong","cisco","junos","fenghuo","nokia","h3c"]:
             return
-        if brand not in ["huawei","huarong"]:
+        if brand not in ["cisco"]:
             return
-        cmd="display mac-address"
+        cmd="show mac address-table | in Eth"
         url_post='http://10.213.136.111:40061/network_app/distribute_config/exec_cmd/'
         config={
             "device_hostname":hostname,
@@ -56,8 +56,7 @@ class Run:
                 return
             if not response_url_post:
                 return
-        if brand=="huawei" or brand=="huarong":
-            print(response_url_post)
+        print(response_url_post)
 
     def run(self):
         with ThreadPoolExecutor(max_workers=50) as executor:

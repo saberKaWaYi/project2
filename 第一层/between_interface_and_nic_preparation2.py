@@ -100,8 +100,8 @@ class Run:
         self.db_mysql_client.execute(sql)
         self.db_mysql.client.commit()
 
-    def tool1(self,s):
-        s=s.split("-")
+    def tool1(self,s,split_s):
+        s=s.split(split_s)
         result=[]
         for i in s:
             result.append(i[:2])
@@ -116,6 +116,9 @@ class Run:
                 s=s.replace("GE","GigabitEthernet")
             if "XGE" in s and s.index("XGE")==0:
                 s=s.replace("XGE","XGigabitEthernet")
+        elif brand=="cisco":
+            if "Eth" in s:
+                s=s.replace("Eth","Ethernet")
         return s
 
     def fc(self,hostname,ip,brand,command):
@@ -174,9 +177,19 @@ class Run:
                 if not line or line[0].count("-")!=2 or line[3]!="dynamic":
                     continue
                 with self.lock4:
-                    if line[2] not in self.result:
+                    if (hostname,self.tool2(line[2],brand)) not in self.result:
                         self.result[(hostname,self.tool2(line[2],brand))]=[]
-                    self.result[(hostname,self.tool2(line[2],brand))].append(self.tool1(line[0]))
+                    self.result[(hostname,self.tool2(line[2],brand))].append(self.tool1(line[0],"-"))
+        elif brand=="cisco":
+            info=response_url_post.split("\n")
+            for line in info:
+                line=line.split()
+                if not line or line[0]!="*":
+                    continue
+                with self.lock4:
+                    if (hostname,self.tool2(line[-1],brand)) not in self.result:
+                        self.result[(hostname,self.tool2(line[-1],brand))]=[]
+                    self.result[(hostname,self.tool2(line[-1],brand))].append(self.tool1(line[2],"."))
 
     def main1(self,hostname,ip,brand):
         if "." not in ip:
@@ -196,6 +209,8 @@ class Run:
             return
         if brand=="huawei" or brand=="huarong":
             self.fc(hostname,ip,brand,"display mac-address")
+        elif brand=="cisco":
+            self.fc(hostname,ip,brand,"show mac address-table | in Eth")
 
     def run1_0(self,key):
         with ThreadPoolExecutor(max_workers=25) as executor:
