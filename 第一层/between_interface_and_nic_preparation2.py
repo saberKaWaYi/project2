@@ -332,6 +332,8 @@ class Run:
         for i in self.zd1:
             if i not in self.zd4 and i!="else":
                 continue
+            if i!="POD08":
+                continue
             if i!="else":
                 self.signal1=time.time()
                 self.signal2=[]
@@ -344,10 +346,23 @@ class Run:
                 t2.join()
             else:
                 self.run1_0("else")
+        for i in self.result:
+            self.result[i]="|".join(self.result[i])
+
+    def update(self):
+        update_sql="""
+            UPDATE topu.interface SET mac_address = %s WHERE hostname = %s AND name = %s
+        """
+        batch_data=[]
+        for (hostname,name),mac in self.result.items():
+            batch_data.append((mac,hostname,name))
+        self.db_mysql_client.executemany(update_sql,batch_data)
+        self.db_mysql.client.commit()
 
     def run(self):
         self.alter()
         self.main()
+        self.update()
 
 if __name__=="__main__":
     config={
