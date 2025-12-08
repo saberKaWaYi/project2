@@ -112,6 +112,10 @@ class Run:
         if brand=="huawei" or brand=="huarong":
             if s[0]=="#":
                 s=s[1:]
+            if "GE" in s and s.index("GE")==0:
+                s=s.replace("GE","GigabitEthernet")
+            if "XGE" in s and s.index("XGE")==0:
+                s=s.replace("XGE","XGigabitEthernet")
         return s
 
     def fc(self,hostname,ip,brand,command):
