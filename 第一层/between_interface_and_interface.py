@@ -700,6 +700,8 @@ class Run:
         self.result=temp_result
 
     def insert_data(self):
+        self.conn=Connect_Mysql(self.config)
+        self.conn_client=self.conn.client.cursor()
         sql='''
         insert into topu.between_interface_and_interface (lldpLocSysName,lldpRemSysName,lldpLocChassisId,lldpRemChassisId,lldpLocSysDesc,lldpRemSysDesc,lldpLocPortId,lldpRemPortId,lldpLocPortDesc,lldpRemPortDesc,lldpLocip,lldpRemip,lldpLocbrand,lldpRembrand) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
         '''

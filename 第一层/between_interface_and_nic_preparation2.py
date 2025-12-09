@@ -355,6 +355,8 @@ class Run:
             self.result[i]="|".join(self.result[i])
 
     def update(self):
+        self.db_mysql=Connect_Mysql(config)
+        self.db_mysql_client=self.db_mysql.client.cursor()
         update_sql="""
             UPDATE topu.interface SET mac_address = %s WHERE hostname = %s AND name = %s
         """
