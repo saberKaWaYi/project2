@@ -1,19 +1,16 @@
-from connect import Connect_Clickhouse,Connect_Mongodb,Connect_Mysql
+from connect import Connect_Mysql,Connect_Clickhouse
 import threading
-from bson import ObjectId
-import pandas as pd
 from get_zd import get_zd
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor,as_completed
 
 class Run:
 
-    def __init__(self,config1,config2,config3):
+    def __init__(self,config1,config2):
         self.config1=config1
         self.config2=config2
-        self.conn=Connect_Clickhouse(self.config2);self.lock=threading.Lock()
-        self.config3=config3
         self.network_list=self.get_network_list()
+        self.conn=Connect_Clickhouse(self.config2);self.lock=threading.Lock()
         self.zd=get_zd()
         self.time=datetime.now()
         self.result=[]
@@ -30,7 +27,7 @@ class Run:
         sql=f'''
         INSERT INTO cds_report.report_network_lldp ({columns_str}) VALUES ({values_placeholders});
         '''
-        conn=Connect_Mysql(self.config3)
+        conn=Connect_Mysql(self.config1)
         cursor=conn.client.cursor()
         jh1=set(conn.get_table_data("","select lldpLocSysname from topu.between_interface_and_interface")["lldpLocSysname"].values.tolist())
         jh2=["ROS","yunkuan","cloudsdnet","FD2-OT","ATEN","netmonitor","SinTai"]
@@ -128,52 +125,7 @@ class Run:
                 self.result.append([hostname,ip,brand,0,self.time,"配置语句没包含\'lldp enable\'。",self.zd[hostname]])
 
     def get_network_list(self):
-        conn=Connect_Mongodb(self.config1)
-        pipeline=[
-            {
-                '$match':{
-                    'status':1,
-                    'asset_status':{
-                        '$in':[
-                            ObjectId("5f964e31df0dfd65aaa716ec"),
-                            ObjectId("5fcef6de94103c791bc2a471")
-                        ]
-                    }
-                }
-            },
-            {
-                '$lookup':{
-                    'from':'cds_ci_location_detail',
-                    'localField':'_id',
-                    'foreignField':'device_id',
-                    'as':'location'
-                }
-            },
-            {
-                '$match':{
-                    'location.status':1
-                }
-            },
-            {
-                '$project':{
-                    "hostname":1,
-                    "device_ip":1,
-                    "brand":1
-                }
-            }
-        ]
-        temp=pd.DataFrame(list(conn.db.cds_ci_att_value_network.aggregate(pipeline))).astype(str).values.tolist()
-        data=[]
-        for i in temp:
-            hostname=i[2];ip=i[1];brand=i[3]
-            if hostname.lower()=="none" or hostname.lower()=="null" or hostname.lower()=="nan" or hostname=="" or hostname=="-" or hostname=="--" or hostname=="---" or hostname==None:
-                continue
-            if "." not in ip:
-                continue
-            if brand=="" or brand=="-" or brand=="--" or brand=="---" or brand=="none" or brand=="null" or brand=="nan" or brand==None:
-                continue
-            hostname="-".join([i.strip() for i in hostname.split("-")]);brand=brand.lower()
-            data.append([hostname,ip,brand])
+        data=Connect_Mysql(self.config1).get_table_data("","select hostname,ip,brand from topu.network")[["hostname","ip","brand"]].values.tolist()
         return data
 
 if __name__=="__main__":
@@ -182,10 +134,10 @@ if __name__=="__main__":
             "TIMES":3,
             "TIME":1
         },
-        "mongodb":{
-            "HOST":"10.216.141.46",
-            "PORT":27017,
-            "USERNAME":"manager",
+        "mysql":{
+            "HOST":"10.216.141.30",
+            "PORT":19002,
+            "USERNAME":"devops_master",
             "PASSWORD":"cds-cloud@2017"
         }
     }
@@ -201,17 +153,5 @@ if __name__=="__main__":
             "PASSWORD":""
         }
     }
-    config3={
-        "connection":{
-            "TIMES":3,
-            "TIME":1
-        },
-        "mysql":{
-            "HOST":"10.216.141.30",
-            "PORT":19002,
-            "USERNAME":"devops_master",
-            "PASSWORD":"cds-cloud@2017"
-        }
-    }
-    m=Run(config1,config2,config3)
+    m=Run(config1,config2)
     m.run()
