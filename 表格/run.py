@@ -125,7 +125,17 @@ class Run:
                 self.result.append([hostname,ip,brand,0,self.time,"配置语句没包含\'lldp enable\'。",self.zd[hostname]])
 
     def get_network_list(self):
-        data=Connect_Mysql(self.config1).get_table_data("","select hostname,ip,brand from topu.network")[["hostname","ip","brand"]].values.tolist()
+        temp=Connect_Mysql(self.config1).get_table_data("","select hostname,ip,brand from topu.network")[["hostname","ip","brand"]].values.tolist()
+        data=[]
+        for i in temp:
+            hostname=i[0];ip=i[1];brand=i[2]
+            if hostname.lower()=="none" or hostname.lower()=="null" or hostname.lower()=="nan" or hostname=="" or hostname=="-" or hostname=="--" or hostname=="---" or hostname==None:
+                continue
+            if "." not in ip:
+                continue
+            if brand=="" or brand=="-" or brand=="--" or brand=="---" or brand=="none" or brand=="null" or brand=="nan" or brand==None:
+                continue
+            data.append([hostname,ip,brand])
         return data
 
 if __name__=="__main__":
