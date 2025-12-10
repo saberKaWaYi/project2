@@ -30,7 +30,7 @@ class Run:
         conn=Connect_Mysql(self.config1)
         cursor=conn.client.cursor()
         jh1=set(conn.get_table_data("","select lldpLocSysname from topu.between_interface_and_interface")["lldpLocSysname"].values.tolist())
-        jh2=["ROS","yunkuan","cloudsdnet","FD2-OT","ATEN","netmonitor","SinTai"]
+        jh2=set(["ROS","yunkuan","cloudsdnet","FD2-OT","ATEN","netmonitor","SinTai"])
         for i in range(len(self.result)):
             if self.result[i][3]:
                 continue
