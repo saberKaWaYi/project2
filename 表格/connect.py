@@ -56,7 +56,7 @@ class Connect_Mysql:
                 return client
             except:
                 time.sleep(self.config["connection"]["TIME"])
-        logging.error("mysql登录失败。")
+        logging_connect_mysql.error("mysql登录失败。")
         raise Exception("mysql登录失败。")
     
     def close(self):
@@ -66,7 +66,7 @@ class Connect_Mysql:
                 return
             except:
                 time.sleep(self.config["connection"]["TIME"])
-        logging.error("mysql关闭失败。")
+        logging_connect_mysql.error("mysql关闭失败。")
         raise Exception("mysql关闭失败。")
     
     def get_table_data(self,table_name,query):
@@ -80,7 +80,7 @@ class Connect_Mysql:
                     return data
             except:
                 time.sleep(self.config["connection"]["TIME"])
-        logging.error(f"{table_name}数据获取失败。")
+        logging_connect_mysql.error(f"{table_name}数据获取失败。")
         raise Exception(f"{table_name}数据获取失败。")
     
 from clickhouse_driver import Client
@@ -99,7 +99,7 @@ class Connect_Clickhouse:
                 return client
             except:
                 time.sleep(self.config["connection"]["TIME"])
-        logging.error("clickhouse登录失败。")
+        logging_connect_clickhouse.error("clickhouse登录失败。")
         raise Exception("clickhouse登录失败。")
     
     def close(self):
@@ -109,7 +109,7 @@ class Connect_Clickhouse:
                 return
             except:
                 time.sleep(self.config["connection"]["TIME"])
-        logging.error("clickhouse关闭失败。")
+        logging_connect_clickhouse.error("clickhouse关闭失败。")
         raise Exception("clickhouse关闭失败。")
     
     def query(self,query):
@@ -121,8 +121,7 @@ class Connect_Clickhouse:
                 return data
             except Exception as e:
                 time.sleep(self.config["connection"]["TIME"])
-                print(e)
-        logging.error(f"{query}数据获取失败。")
+        logging_connect_clickhouse.error(f"{query}数据获取失败。")
         raise Exception(f"{query}数据获取失败。")
     
 from pymongo import MongoClient
@@ -143,7 +142,7 @@ class Connect_Mongodb:
                 return client
             except:
                 time.sleep(self.config["connection"]["TIME"])
-        logging.error("mongodb登录失败。")
+        logging_connect_mongo.error("mongodb登录失败。")
         raise Exception("mongodb登录失败。")
     
     def get_database(self):
@@ -152,7 +151,7 @@ class Connect_Mongodb:
                 return self.client.get_database("cds_cmdb")
             except:
                 time.sleep(self.config["connection"]["TIME"])
-        logging.error("cds_cmdb获取失败。")
+        logging_connect_mongo.error("cds_cmdb获取失败。")
         raise Exception("cds_cmdb获取失败。")
     
     def close(self):
@@ -162,7 +161,7 @@ class Connect_Mongodb:
                 return
             except:
                 time.sleep(self.config["connection"]["TIME"])
-        logging.error("mongodb关闭失败。")
+        logging_connect_mongo.error("mongodb关闭失败。")
         raise Exception("mongodb关闭失败。")
 
     def get_collection(self,name,condition1,condition2):
@@ -172,5 +171,5 @@ class Connect_Mongodb:
                 return data
             except:
                 time.sleep(self.config["connection"]["TIME"])
-        logging.error(f"{name}数据获取失败。")
+        logging_connect_mongo.error(f"{name}数据获取失败。")
         raise Exception(f"{name}数据获取失败。")
