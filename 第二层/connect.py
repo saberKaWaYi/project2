@@ -51,7 +51,7 @@ class Connect_Mysql:
                 return client
             except:
                 time.sleep(self.config["connection"]["TIME"])
-        logging.error("mysql登录失败。")
+        logging_connect_mysql.error("mysql登录失败。")
         raise Exception("mysql登录失败。")
     
     def close(self):
@@ -61,7 +61,7 @@ class Connect_Mysql:
                 return
             except:
                 time.sleep(self.config["connection"]["TIME"])
-        logging.error("mysql关闭失败。")
+        logging_connect_mysql.error("mysql关闭失败。")
         raise Exception("mysql关闭失败。")
     
     def get_table_data(self,table_name,query):
@@ -75,7 +75,7 @@ class Connect_Mysql:
                     return data
             except:
                 time.sleep(self.config["connection"]["TIME"])
-        logging.error(f"{table_name}数据获取失败。")
+        logging_connect_mysql.error(f"{table_name}数据获取失败。")
         raise Exception(f"{table_name}数据获取失败。")
     
 from nebula3.Config import Config
@@ -99,7 +99,7 @@ class Connect_Nebula:
                 return
             except:
                 time.sleep(self.config1["TIME"])
-        logging.error("nebula链接失败。")
+        logging_nebula.error("nebula链接失败。")
         raise Exception("nebula链接失败。")
  
     def close_nebula(self):
@@ -110,5 +110,5 @@ class Connect_Nebula:
                 return
             except:
                 time.sleep(self.config1["TIME"])
-        logging.error("nebula关闭失败。")
+        logging_nebula.error("nebula关闭失败。")
         raise Exception("nebula关闭失败。")
