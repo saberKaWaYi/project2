@@ -151,6 +151,14 @@ class Run:
                 relationship.append([f"{i[1]}|{i[3]}",f"{i[0]}|{i[2]}","网络"])
         self.create_edges("interface_to_interface",relationship,chunk_size=10000)
 
+    def create_between_server_and_nic_edges(self):
+        relationship1=[];relationship2=[]
+        for i in self.temp:
+            relationship1.append([i[0],f"{i[0]}|{i[1]}","网络"])
+            relationship2.append([f"{i[0]}|{i[1]}",i[0],"网络"])
+        self.create_edges("server_to_nic",relationship1,chunk_size=10000)
+        self.create_edges("nic_to_server",relationship2,chunk_size=10000)
+
     def create_between_interface_and_nic_edges(self):
         db_mysql=Connect_Mysql(self.config1)
         temp=db_mysql.get_table_data("","select server_hostname,nic,network_hostname,interface from topu.between_interface_and_nic;")[["server_hostname","nic","network_hostname","interface"]].values.tolist()
@@ -159,11 +167,11 @@ class Run:
         db_mysql.close()
         relationship1=[];relationship2=[]
         for i in temp:
-            if (i[0],i[1]) in jh2 and (i[2],i[3]) in jh21:
-                relationship1.append([i[0],i[1],"网络"])
-                relationship2.append([i[1],i[0],"网络"])
-        self.create_edges("network_to_interface",relationship1,chunk_size=10000)
-        self.create_edges("interface_to_network",relationship2,chunk_size=10000)
+            if (i[0],i[1]) in jh2 and (i[2],i[3]) in jh1:
+                relationship1.append([f"{i[2]}|{i[3]}",f"{i[0]}|{i[1]}","网络"])
+                relationship2.append([f"{i[0]}|{i[1]}",f"{i[2]}|{i[3]}","网络"])
+        self.create_edges("interface_to_nic",relationship1,chunk_size=10000)
+        self.create_edges("nic_to_interface",relationship2,chunk_size=10000)
     
     def run(self):
         self.create_network_nodes()
@@ -172,6 +180,7 @@ class Run:
         self.create_nic_nodes()
         self.create_between_network_and_interface_edges()
         self.create_between_interface_and_interface_edges()
+        self.create_between_server_and_nic_edges()
         self.create_between_interface_and_nic_edges()
 
 if __name__=="__main__":
