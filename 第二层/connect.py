@@ -25,10 +25,10 @@ logging_connect_mysql=logging.getLogger("mysql")
 logging_connect_mysql.setLevel(logging.INFO)
 logging_connect_mysql.addHandler(handler)
 
-handler=get_rotating_handler("mongo.log")
-logging_connect_mongo=logging.getLogger("mongo")
-logging_connect_mongo.setLevel(logging.INFO)
-logging_connect_mongo.addHandler(handler)
+handler=get_rotating_handler("nebula.log")
+logging_nebula=logging.getLogger("nebula")
+logging_nebula.setLevel(logging.INFO)
+logging_nebula.addHandler(handler)
 
 import atexit
 import time
@@ -78,52 +78,37 @@ class Connect_Mysql:
         logging.error(f"{table_name}数据获取失败。")
         raise Exception(f"{table_name}数据获取失败。")
     
-from pymongo import MongoClient
+from nebula3.Config import Config
+from nebula3.gclient.net import ConnectionPool
     
-class Connect_Mongodb:
+class Connect_Nebula:
 
     def __init__(self,config):
-        self.config=config
-        self.client=self.login()
-        self.db=self.get_database()
-        atexit.register(self.close)
+        self.config1=config["connection"]
+        self.config2=config["nebula"]
+        self.connectionpool=None
+        self.client=None
 
-    def login(self):
-        for i in range(self.config["connection"]["TIMES"]):
+    def open_nebula(self):
+        for i in range(self.config1["TIMES"]):
             try:
-                client=MongoClient(host=self.config["mongodb"]["HOST"],port=self.config["mongodb"]["PORT"])
-                client.cds_cmdb.authenticate(self.config["mongodb"]["USERNAME"],self.config["mongodb"]["PASSWORD"])
-                return client
-            except:
-                time.sleep(self.config["connection"]["TIME"])
-        logging.error("mongodb登录失败。")
-        raise Exception("mongodb登录失败。")
-    
-    def get_database(self):
-        for i in range(self.config["connection"]["TIMES"]):
-            try:
-                return self.client.get_database("cds_cmdb")
-            except:
-                time.sleep(self.config["connection"]["TIME"])
-        logging.error("cds_cmdb获取失败。")
-        raise Exception("cds_cmdb获取失败。")
-    
-    def close(self):
-        for i in range(self.config["connection"]["TIMES"]):
-            try:
-                self.client.close()
+                config=Config();config.min_connection_pool_size=self.config2["MIN_CONNECTION_POOL_SIZE"];config.max_connection_pool_size=self.config2["MAX_CONNECTION_POOL_SIZE"]
+                connectionpool=ConnectionPool();connectionpool.init([(self.config2["HOST"],self.config2["PORT"])],config)
+                client=connectionpool.get_session("root","nebula")
+                self.connectionpool=connectionpool;self.client=client
                 return
             except:
-                time.sleep(self.config["connection"]["TIME"])
-        logging.error("mongodb关闭失败。")
-        raise Exception("mongodb关闭失败。")
-
-    def get_collection(self,name,condition1,condition2):
-        for i in range(self.config["connection"]["TIMES"]):
+                time.sleep(self.config1["TIME"])
+        logging.error("nebula链接失败。")
+        raise Exception("nebula链接失败。")
+ 
+    def close_nebula(self):
+        for i in range(self.config1["TIMES"]):
             try:
-                data=pd.DataFrame(self.db.get_collection(name).find(condition1,condition2)).astype(str)
-                return data
+                self.client.release()
+                self.connectionpool.close()
+                return
             except:
-                time.sleep(self.config["connection"]["TIME"])
-        logging.error(f"{name}数据获取失败。")
-        raise Exception(f"{name}数据获取失败。")
+                time.sleep(self.config1["TIME"])
+        logging.error("nebula关闭失败。")
+        raise Exception("nebula关闭失败。")
