@@ -27,7 +27,7 @@ logging_main.addHandler(handler)
 
 from sql_demo import Sql_tool
 from datetime import datetime
-from connect import Connect_Nebula,Connect_Mysql
+from connect import Connect_Mysql,Connect_Nebula
 import time
 import pandas as pd
 
@@ -39,7 +39,9 @@ class Run:
         self.m=Sql_tool()
         self.wait_time=15
         temp=datetime.today()
-        self.name=f"NEWG_{temp.year:04d}_{temp.month:02d}_{temp.day:02d}"
+        self.name=f"G_{temp.year:04d}_{temp.month:02d}_{temp.day:02d}"
+        self.db_mysql=Connect_Mysql(self.config1)
+        self.db_mysql_client=self.db_mysql.client.cursor()
         self.temp=None
 
     def init(self):
@@ -60,26 +62,21 @@ class Run:
             "between_rack_and_network","between_rack_and_server","between_rack_and_storage","between_room_and_rack","between_server_and_nic","city","country","data_center",
             "interface","network","nic","rack","room","server","storage"
         ]
-        db_mysql=Connect_Mysql(self.config1)
-        cursor=db_mysql.client.cursor()
         for i in lt:
-            cursor.execute(f"select count(*) as count from topu.{i};")
-            result=cursor.fetchone()["count"]
+            self.db_mysql_client.execute(f"select count(*) as count from topu.{i};")
+            result=self.db_mysql_client.fetchone()["count"]
             if result==0:
                 flag=False
                 break
         else:
             self.m.create_space(client,self.name)
             time.sleep(self.wait_time)
-        db_mysql.close()
         conn.close_nebula()
         return flag
     
     def create_nodes(self,table_name,key_name_list,df=None,chunk_size=1000):
         if df is None:
-            db_mysql=Connect_Mysql(self.config1)
-            df=db_mysql.get_table_data("",f"select * from topu.{table_name};")
-            db_mysql.close()
+            df=self.db_mysql.get_table_data("",f"select * from topu.{table_name};")
         conn=Connect_Nebula(self.config2)
         conn.open_nebula()
         client=conn.client
@@ -101,12 +98,10 @@ class Run:
         self.create_nodes("interface",["hostname","name"],chunk_size=10000)
 
     def create_nic_nodes(self):
-        db_mysql=Connect_Mysql(self.config1)
-        df1=db_mysql.get_table_data("","select * from topu.nic;").values.tolist()
-        df2=db_mysql.get_table_data("","select * from topu.between_interface_and_nic;")[["server_hostname","server_ip","server_brand","nic"]].values.tolist()
+        df1=self.db_mysql.get_table_data("","select * from topu.nic;").values.tolist()
+        df2=self.db_mysql.get_table_data("","select * from topu.between_interface_and_nic;")[["server_hostname","server_ip","server_brand","nic"]].values.tolist()
         jh1=set([(i[0],i[3]) for i in df1])
-        jh2=set(db_mysql.get_table_data("","select hostname from topu.server;")["hostname"].values.tolist())
-        db_mysql.close()
+        jh2=set(self.db_mysql.get_table_data("","select hostname from topu.server;")["hostname"].values.tolist())
         for i in df2:
             if (i[0],i[-1]) in jh1:
                 continue
@@ -127,11 +122,10 @@ class Run:
         self.m.create_edges(client,edge_type,relationship,chunk_size)
         time.sleep(self.wait_time)
         conn.close_nebula()
+        logging_main.info(f"建立边{edge_type}成功了。")
 
     def create_between_network_and_interface_edges(self):
-        db_mysql=Connect_Mysql(self.config1)
-        temp=db_mysql.get_table_data("","select * from topu.between_network_and_interface;").values.tolist()
-        db_mysql.close()
+        temp=self.db_mysql.get_table_data("","select * from topu.between_network_and_interface;").values.tolist()
         relationship1=[];relationship2=[]
         for i in temp:
             relationship1.append([i[0],f"{i[0]}|{i[1]}","网络"])
@@ -140,10 +134,8 @@ class Run:
         self.create_edges("interface_to_network",relationship2,chunk_size=10000)
 
     def create_between_interface_and_interface_edges(self):
-        db_mysql=Connect_Mysql(self.config1)
-        temp=db_mysql.get_table_data("","select lldpLocSysName,lldpRemSysName,lldpLocPortId,lldpRemPortId from topu.between_interface_and_interface;")[["lldpLocSysName","lldpRemSysName","lldpLocPortId","lldpRemPortId"]].values.tolist()
-        jh=set([(i[0],i[1]) for i in db_mysql.get_table_data("","select hostname,name from topu.interface;")[["hostname","name"]].values.tolist()])
-        db_mysql.close()
+        temp=self.db_mysql.get_table_data("","select lldpLocSysName,lldpRemSysName,lldpLocPortId,lldpRemPortId from topu.between_interface_and_interface;")[["lldpLocSysName","lldpRemSysName","lldpLocPortId","lldpRemPortId"]].values.tolist()
+        jh=set([(i[0],i[1]) for i in self.db_mysql.get_table_data("","select hostname,name from topu.interface;")[["hostname","name"]].values.tolist()])
         relationship=[]
         for i in temp:
             if (i[0],i[2]) in jh and (i[1],i[3]) in jh:
@@ -160,11 +152,9 @@ class Run:
         self.create_edges("nic_to_server",relationship2,chunk_size=10000)
 
     def create_between_interface_and_nic_edges(self):
-        db_mysql=Connect_Mysql(self.config1)
-        temp=db_mysql.get_table_data("","select server_hostname,nic,network_hostname,interface from topu.between_interface_and_nic;")[["server_hostname","nic","network_hostname","interface"]].values.tolist()
-        jh1=set([(i[0],i[1]) for i in db_mysql.get_table_data("","select hostname,name from topu.interface;")[["hostname","name"]].values.tolist()])
+        temp=self.db_mysql.get_table_data("","select server_hostname,nic,network_hostname,interface from topu.between_interface_and_nic;")[["server_hostname","nic","network_hostname","interface"]].values.tolist()
+        jh1=set([(i[0],i[1]) for i in self.db_mysql.get_table_data("","select hostname,name from topu.interface;")[["hostname","name"]].values.tolist()])
         jh2=self.temp
-        db_mysql.close()
         relationship1=[];relationship2=[]
         for i in temp:
             if (i[0],i[1]) in jh2 and (i[2],i[3]) in jh1:
