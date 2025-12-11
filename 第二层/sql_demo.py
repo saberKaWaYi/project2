@@ -110,16 +110,16 @@ class Create:
             end_index=min(begin_index+chunk_size,len(data_all))
             data=data_all[begin_index:end_index]
             for _ in range(self.max_times):
-                create_edges_statement=f"INSERT EDGE IF NOT EXISTS {edge_type} (name, info) values "
+                create_edges_statement=f"INSERT EDGE IF NOT EXISTS {edge_type} (name, type) values "
                 for i in data:
                     create_edges_statement+=f"\"{i[0]}\"->\"{i[1]}\":(\"{str(i[0])}_to_{str(i[1])}\", \"{i[2]}\")"
                     create_edges_statement+=", "
                 create_edges_statement=create_edges_statement[:-2]
                 res=nebula.execute(create_edges_statement)
                 if res.is_succeeded():
-                    logging.info(f"批量创建{edge_type}|{begin_index//chunk_size:<6}成功了。")
+                    logging_sql_demo.info(f"批量创建{edge_type}|{begin_index//chunk_size:<6}成功了。")
                     break
                 time.sleep(self.sleep_time)
             else:
-                logging.error(f"批量创建{edge_type}失败了。{create_edges_statement}。{res.error_msg()}。")
+                logging_sql_demo.error(f"批量创建{edge_type}失败了。{create_edges_statement}。{res.error_msg()}。")
                 raise Exception(f"批量创建{edge_type}失败了。{create_edges_statement}。{res.error_msg()}。")
