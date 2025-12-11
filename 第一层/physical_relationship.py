@@ -413,8 +413,8 @@ class Run:
             u_height VARCHAR(25),
             u_front_back VARCHAR(25),
             u_size VARCHAR(25),
-            server_group VARCHAR(25),
-            server_type VARCHAR(25)
+            network_group VARCHAR(25),
+            network_type VARCHAR(25)
         );
         '''
         self.db_mysql_client.execute(sql)
@@ -476,7 +476,7 @@ class Run:
                 temp[i[0]]=i
         network=[tuple(i[:-1]) for i in temp.values()]
         sql='''
-        insert into topu.network (hostname,ip,brand,u_begin,u_height,u_front_back,u_size) values (%s,%s,%s,%s,%s,%s,%s)
+        insert into topu.network (hostname,ip,brand,u_begin,u_height,u_front_back,u_size,network_group,network_type) values (%s,%s,%s,%s,%s,%s,%s,%s,%s)
         '''
         self.db_mysql_client.executemany(sql,network)
         self.db_mysql.client.commit()
