@@ -32,8 +32,6 @@ class Create:
     def __init__(self):
         self.max_times=3
         self.sleep_time=1
-        self.x="\'"
-        self.y="\""
 
     def drop_space(self,nebula,name):
         for _ in range(self.max_times):
