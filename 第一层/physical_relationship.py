@@ -412,7 +412,9 @@ class Run:
             u_begin VARCHAR(25),
             u_height VARCHAR(25),
             u_front_back VARCHAR(25),
-            u_size VARCHAR(25)
+            u_size VARCHAR(25),
+            server_group VARCHAR(25),
+            server_type VARCHAR(25)
         );
         '''
         self.db_mysql_client.execute(sql)
@@ -433,11 +435,13 @@ class Run:
                     "u_height":1,
                     "u_front_back":1,
                     "u_size":1,
-                    "update_at":1
+                    "update_at":1,
+                    "device_network_group":1,
+                    "device_network_type":1
                 }
             }
         )
-        network=pd.DataFrame(list(self.db_mongo.db.cds_ci_att_value_network.aggregate(pipeline_copy))).astype(str)[["hostname","device_ip","brand","u_begin","u_height","u_front_back","u_size","update_at"]].values.tolist()
+        network=pd.DataFrame(list(self.db_mongo.db.cds_ci_att_value_network.aggregate(pipeline_copy))).astype(str)[["hostname","device_ip","brand","u_begin","u_height","u_front_back","u_size","device_network_group","device_network_type","update_at"]].values.tolist()
         zd=self.db_mongo.get_collection("cds_dict_detail",{"status":1},{"_id","field_name"})[["_id","field_name"]]
         zd=dict(zip(zd["_id"].values.tolist(),zd["field_name"].values.tolist()))
         for i in range(len(network)):
@@ -451,26 +455,19 @@ class Run:
                 ip=".".join([i.strip() for i in ip.split(".")])
                 network[i][1]=ip
             network[i][2]=network[i][2].lower()
-            for j in range(3,7):
+            for j in range(3,9):
                 network[i][j]=network[i][j].lower()
                 if network[i][j] in ["nan","null","none","-","--","---"]:
                     network[i][j]=""
-            x=network[i][-3]
-            try:
-                x=x[x.index("'")+1:]
-                x=x[:x.index("'")]
-                x=zd.get(x,"")
-            except:
-                x=""
-            network[i][-3]=x
-            y=network[i][-2]
-            try:
-                y=y[y.index("'")+1:]
-                y=y[:y.index("'")]
-                y=zd.get(y,"")
-            except:
-                y=""
-            network[i][-2]=y
+            for j in range(-5,-1):
+                x=network[i][j]
+                try:
+                    x=x[x.index("'")+1:]
+                    x=x[:x.index("'")]
+                    x=zd.get(x,"")
+                except:
+                    x=""
+                network[i][j]=x
         temp={}
         for i in network:
             if i[0] not in temp:
