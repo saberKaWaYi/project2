@@ -27,7 +27,7 @@ logging_sql_demo.addHandler(handler)
 
 import time
 
-class Create:
+class Sql_tool:
     
     def __init__(self):
         self.max_times=3
@@ -92,16 +92,16 @@ class Create:
                 logging_sql_demo.error(f"批量创建{tag_name}失败了。{create_nodes_statement}。{res.error_msg()}。")
                 raise Exception(f"批量创建{tag_name}失败了。{create_nodes_statement}。{res.error_msg()}。")
 
-    def create_edge_type(self,nebula,edge_type1,edge_type2):
+    def create_edge_type(self,nebula,edge_type):
         for _ in range(self.max_times):
-            create_edge_type_statement=f"CREATE EDGE IF NOT EXISTS {edge_type1} (name string, type {edge_type2});"
+            create_edge_type_statement=f"CREATE EDGE IF NOT EXISTS {edge_type} (name string, type string);"
             res=nebula.execute(create_edge_type_statement)
             if res.is_succeeded():
-                logging_sql_demo.info(f"创建{edge_type1}成功。")
+                logging_sql_demo.info(f"创建{edge_type}成功。")
                 return
             time.sleep(self.sleep_time)
-        logging_sql_demo.error(f"创建{edge_type1}失败。{create_edge_type_statement}。{res.error_msg()}。")
-        raise Exception(f"创建{edge_type1}失败。{create_edge_type_statement}。{res.error_msg()}。")
+        logging_sql_demo.error(f"创建{edge_type}失败。{create_edge_type_statement}。{res.error_msg()}。")
+        raise Exception(f"创建{edge_type}失败。{create_edge_type_statement}。{res.error_msg()}。")
     
     def create_edges(self,nebula,edge_type,data_all,chunk_size):
         for begin_index in range(0,len(data_all),chunk_size):
