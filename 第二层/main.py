@@ -121,7 +121,7 @@ class Run:
         conn=Connect_Nebula(self.config2)
         conn.open_nebula()
         client=conn.client
-        client.execute(f"USE {self.name}")
+        client.execute(f"USE {self.name};")
         self.m.create_edge_type(client,edge_type)
         time.sleep(self.wait_time)
         self.m.create_edges(client,edge_type,relationship,chunk_size)
@@ -142,7 +142,7 @@ class Run:
     def create_between_interface_and_interface_edges(self):
         db_mysql=Connect_Mysql(self.config1)
         temp=db_mysql.get_table_data("","select lldpLocSysName,lldpRemSysName,lldpLocPortId,lldpRemPortId from topu.between_interface_and_interface;")[["lldpLocSysName","lldpRemSysName","lldpLocPortId","lldpRemPortId"]].values.tolist()
-        jh=set([(i[0],i[1]) for i in db_mysql.get_table_data("","select hostname,name from topu.interface")[["hostname","name"]].values.tolist()])
+        jh=set([(i[0],i[1]) for i in db_mysql.get_table_data("","select hostname,name from topu.interface;")[["hostname","name"]].values.tolist()])
         db_mysql.close()
         relationship=[]
         for i in temp:
@@ -162,7 +162,7 @@ class Run:
     def create_between_interface_and_nic_edges(self):
         db_mysql=Connect_Mysql(self.config1)
         temp=db_mysql.get_table_data("","select server_hostname,nic,network_hostname,interface from topu.between_interface_and_nic;")[["server_hostname","nic","network_hostname","interface"]].values.tolist()
-        jh1=set([(i[0],i[1]) for i in db_mysql.get_table_data("","select hostname,name from topu.interface")[["hostname","name"]].values.tolist()])
+        jh1=set([(i[0],i[1]) for i in db_mysql.get_table_data("","select hostname,name from topu.interface;")[["hostname","name"]].values.tolist()])
         jh2=self.temp
         db_mysql.close()
         relationship1=[];relationship2=[]
