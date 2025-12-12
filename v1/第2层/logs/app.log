@@ -1,0 +1,16 @@
+2025-08-28 10:33:46,054 - INFO - Get connection to ('127.0.0.1', 8001)
+2025-08-28 10:34:41,515 - WARNING - Connect 127.0.0.1:8002 failed: Socket read failed: timed out
+2025-08-28 10:34:42,632 - WARNING - Connect 127.0.0.1:8002 failed: Socket read failed: timed out
+2025-08-28 10:34:43,758 - WARNING - Connect 127.0.0.1:8002 failed: Socket read failed: timed out
+2025-08-28 10:34:44,870 - WARNING - Connect 127.0.0.1:8002 failed: Socket read failed: timed out
+2025-08-28 10:34:45,988 - WARNING - Connect 127.0.0.1:8002 failed: Socket read failed: timed out
+2025-08-28 10:34:50,698 - WARNING - Connect 127.0.0.1:8002 failed: socket error connecting to host 127.0.0.1, port 8002 (('127.0.0.1', 8002)): TimeoutError('timed out')
+2025-08-28 10:34:51,812 - WARNING - Connect 127.0.0.1:8002 failed: socket error connecting to host 127.0.0.1, port 8002 (('127.0.0.1', 8002)): TimeoutError('timed out')
+2025-08-28 10:34:52,926 - WARNING - Connect 127.0.0.1:8002 failed: socket error connecting to host 127.0.0.1, port 8002 (('127.0.0.1', 8002)): TimeoutError('timed out')
+2025-08-28 10:34:54,040 - WARNING - Connect 127.0.0.1:8002 failed: socket error connecting to host 127.0.0.1, port 8002 (('127.0.0.1', 8002)): TimeoutError('timed out')
+2025-08-28 10:36:24,426 - INFO - Get connection to ('127.0.0.1', 7000)
+2025-08-28 10:36:47,222 - INFO - Get connection to ('127.0.0.1', 7000)
+2025-08-28 10:38:01,587 - INFO - Get connection to ('127.0.0.1', 7000)
+2025-08-28 10:40:50,698 - INFO - Get connection to ('127.0.0.1', 7000)
+2025-08-28 10:41:49,453 - INFO - Get connection to ('127.0.0.1', 7000)
+2025-08-28 10:42:19,339 - INFO - Get connection to ('127.0.0.1', 7000)
