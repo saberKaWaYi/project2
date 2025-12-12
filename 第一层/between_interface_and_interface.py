@@ -691,7 +691,7 @@ class Run:
         temp_result=[]
         for i in self.result:
             temp=list(i)
-            temp[0]=temp[0][:100] if temp[0]!=None else None;temp[1]=temp[1][:100] if temp[1]!=None else None;temp[2]=temp[2][:100] if temp[2]!=None else None;temp[3]=temp[3][:100] if temp[3]!=None else None
+            temp[0]=temp[0][:100] if temp[0]!=None else None;temp[1]=temp[1][:100].strip(".cdscloud.local") if temp[1]!=None else None;temp[2]=temp[2][:100] if temp[2]!=None else None;temp[3]=temp[3][:100] if temp[3]!=None else None
             temp[6]=temp[6][:100] if temp[6]!=None else None;temp[7]=temp[7][:100] if temp[7]!=None else None
             temp[-4]=temp[-4][:25] if temp[-4]!=None else None;temp[-3]=temp[-3][:25] if temp[-3]!=None else None;temp[-2]=temp[-2][:25] if temp[-2]!=None else None;temp[-1]=temp[-1][:25] if temp[-1]!=None else None
             temp[6]=self.tool4(temp[6]) if temp[-2]=="cisco" else temp[6]
